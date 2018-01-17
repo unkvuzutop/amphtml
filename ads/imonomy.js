@@ -22,17 +22,15 @@ const EVENT_SUCCESS = 0;
 const EVENT_TIMEOUT = 1;
 const EVENT_ERROR = 2;
 const EVENT_BADTAG = 3;
-const PROTOCOL = 'http';
+
 /**
  * @param {!Window} global
  * @param {!Object} data
  */
 export function imonomy(global, data) {
-  console.log(666);
-  debugger;
   if (!('slot' in data)) {
     global.CasaleArgs = data;
-    writeScript(global, PROTOCOL+'://srv.imonmy.com/indexJTag.js');
+    writeScript(global, '//srv.imonmy.com/indexJTag.js');
   } else { //DFP ad request call
 
     const start = Date.now();
@@ -62,7 +60,7 @@ export function imonomy(global, data) {
       ampError: EVENT_ERROR,
     };
 
-    loadScript(global, PROTOCOL+'://srv.imonomy.com/amp/amp.js', undefined, () => {
+    loadScript(global, '//srv.imonomy.com/amp/amp.js', undefined, () => {
       callDoubleclick(EVENT_ERROR);
     });
   }
@@ -79,54 +77,73 @@ function prepareData(data) {
 }
 
 function reportStats(siteID, slotID, dfpSlot, start, code) {
+  reportUrl();
   try {
     if (code == EVENT_BADTAG) { return; }
     const xhttp = new XMLHttpRequest();
     xhttp.withCredentials = true;
 
-    const deltat = Date.now() - start;
-    const ts = start / 1000 >> 0;
-    const ets = Date.now() / 1000 >> 0;
-    let url = PROTOCOL+'://srv.imonomy.com/internal/reporter?s=' + siteID;
-    if (typeof window.context.location.href !== 'undefined') {
-      url += '&u=' + encodeURIComponent(window.context.location.href);
-    }
-    let stats = '{"p":"display","d":"mobile","t":' + ts + ',';
-    stats += '"sl":[{"s": "' + slotID + '",';
-    stats += '"t":' + ets + ',';
-    stats += '"e": [{';
-    if (code == EVENT_SUCCESS) {
-      stats += '"n":"amp-s",';
-    } else if (code == EVENT_TIMEOUT) {
-      stats += '"n":"amp-t",';
-    } else {
-      stats += '"n":"amp-e",';
-    }
-    stats += '"v":"' + deltat + '",';
-    stats += '"b": "INDX","x": "' + dfpSlot.substring(0,64) + '"}]}]}';
+    // const deltat = Date.now() - start;
+    // const ts = start / 1000 >> 0;
+    // const ets = Date.now() / 1000 >> 0;
+    // let url = '//srv.imonomy.com/internal/reporter?s=' + siteID;
+    // if (typeof window.context.location.href !== 'undefined') {
+    //   url += '&u=' + encodeURIComponent(window.context.location.href);
+    // }
+    // let stats = '{"p":"display","d":"mobile","t":' + ts + ',';
+    // stats += '"sl":[{"s": "' + slotID + '",';
+    // stats += '"t":' + ets + ',';
+    // stats += '"e": [{';
+    // if (code == EVENT_SUCCESS) {
+    //   stats += '"n":"amp-s",';
+    // } else if (code == EVENT_TIMEOUT) {
+    //   stats += '"n":"amp-t",';
+    // } else {
+    //   stats += '"n":"amp-e",';
+    // }
+    // stats += '"v":"' + deltat + '",';
+    // stats += '"b": "INDX","x": "' + dfpSlot.substring(0,64) + '"}]}]}';
 
-    xhttp.open('POST', url, true);
+    xhttp.open('GET', reportUrl(), true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
-    xhttp.send(stats);
+    xhttp.send();
   } catch (e) {};
 }
 
 //publisher Id from data  (long int)
 // 9999
 function reportUrl() {
-  var unit_code_url = PROTOCOL +'//srv.imonomy.com/internal/reporter?v=2&subid=' +  sub_id + '&format=' + unit_format + '&ai=' + track_id + "&ctxu=" + escape(document.location)+'&fb=' + not_first + "&cid=" + cid + '&ab=' + ab_label + '&cbs=' + Math.random();
-				if (uid){
-					unit_code_url = unit_code_url + "&uid=" + uid;
-				}
-                if (is_locked) {
-                    unit_code_url = unit_code_url + "&is_locked=" + is_locked;
-                }
-                if (is_trackable) {
-                    unit_code_url = unit_code_url + "&istrk=" + is_trackable;
-                }
-                if (is_client){
-					unit_code_url = unit_code_url+"&is_client=true";
-					if(tier != undefined){unit_code_url = unit_code_url+"&tier="+tier}
-				}
-  	return unit_code_url;
+  const subId = '',
+      unitFormat = '',
+      trackId = '1',
+      pageLocation = escape(document.location),
+      notFirst = true,
+      cid = '1',
+      abLabel = '',
+      rand = Math.random();
+  const uid = '',
+      isLocked = false,
+      isTrackable = false,
+      isClient = false,
+      tier = null;
+  const baseUrl = '//srv.imonomy.com/internal/reporter';
+  let unitCodeUrl = `${baseUrl}?v=2&subid=${subId}&format=${unitFormat}&ai=`;
+  unitCodeUrl = unitCodeUrl + `${trackId}&ctxu=${pageLocation}&fb=${notFirst}&`;
+  unitCodeUrl = unitCodeUrl + `cid=${cid} &ab=${abLabel}&cbs=${rand}`;
+  if (uid) {
+    unitCodeUrl = unitCodeUrl + `&uid=${uid}`;
+  }
+  if (isLocked) {
+    unitCodeUrl = unitCodeUrl + `&is_locked=${isLocked}`;
+  }
+  if (isTrackable) {
+    unitCodeUrl = unitCodeUrl + `&istrk=${isTrackable}`;
+  }
+  if (isClient) {
+    unitCodeUrl = unitCodeUrl + `&is_client=${isClient}`;
+    if (tier) {
+      unitCodeUrl = unitCodeUrl + `&tier=${tier}`;
+    }
+  }
+  	return unitCodeUrl;
 }
