@@ -1,5 +1,5 @@
 <!---
-Copyright 2016 The AMP HTML Authors. All Rights Reserved.
+Copyright 2018 The AMP HTML Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,23 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# Index Exchange
+# Imonomy
 
-Index supports Header Tag style bidding using Doubleclick as the ad server.
+Imonomy supports Header Tag style bidding using Doubleclick as the ad server.
 
 ## Example
 
 ```html
-<amp-ad width=300 height=250
+<amp-ad width=728 height=90
   type="imonomy"
-  data-imonomy-id="54321"
-  data-slot="/1234/example"
+  data-pid="5656544455"
+  data-sub-id="636gd"
+  data-slot="/36653869/amp_imo_multi_size"
 </amp-ad>
 ```
 
 ## Configuration
 
-For semantics of configuration, please contact your account manager at Index Exchange.
+For semantics of configuration, please contact your account manager at Imonomy.
 
 If you use `remote.html` in your AMP pages, you must add `imonomy` into the array that outlines the list of acceptable types. For example, `['doubleclick']` should be changed to `['doubleclick', 'imonomy']`. If you do not use `remote.html`, this step is not required.
 
@@ -38,13 +39,9 @@ Ad size is based on the `width` and `height` attributes of the `amp-ad` tag by d
 
 __Required:__
 
-- `data-imonomy-id`
-- `data-slot`
-
-__Optional:__
-
+- `data-pid`
+- `data-sub-id`
 - `data-imonomy-slot`
-- `data-imonomy-timeout`
 
 Additional parameters including `json` will be passed through in the resulting call to DFP. For details please see the [Doubleclick documentation](https://github.com/ampproject/amphtml/blob/master/ads/google/doubleclick.md).
 

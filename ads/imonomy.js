@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 The AMP HTML Authors. All Rights Reserved.
+ * Copyright 2018 The AMP HTML Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ const EVENT_SUCCESS = 0;
 const EVENT_TIMEOUT = 1;
 const EVENT_ERROR = 2;
 const EVENT_BADTAG = 3;
+const imonomyData = ['pid', 'subId', 'timeout'];
 
 /**
  * @param {!Window} global
@@ -32,24 +33,21 @@ export function imonomy(global, data) {
     global.CasaleArgs = data;
     writeScript(global, '//srv.imonmy.com/indexJTag.js');
   } else { //DFP ad request call
-
-    const start = Date.now();
     let calledDoubleclick = false;
-    data.ixTimeout = isNaN(data.ixTimeout) ? DEFAULT_TIMEOUT : data.ixTimeout;
+    data.timeout = isNaN(data.timeout) ? DEFAULT_TIMEOUT : data.timeout;
     const timer = setTimeout(() => {
       callDoubleclick(EVENT_TIMEOUT);
-    }, data.ixTimeout);
-
+    }, data.timeout);
     const callDoubleclick = function(code) {
       if (calledDoubleclick) { return; }
       calledDoubleclick = true;
       clearTimeout(timer);
-      reportStats(data.ixid, data.ixslot, data.slot, start, code);
+      reportStats(data, code);
       prepareData(data);
       doubleclick(global, data);
     };
 
-    if (typeof data.ixid === 'undefined' || isNaN(data.ixid)) {
+    if (typeof data.pid === 'undefined' || isNaN(data.pid)) {
       callDoubleclick(EVENT_BADTAG);
       return;
     }
@@ -68,66 +66,46 @@ export function imonomy(global, data) {
 
 function prepareData(data) {
   for (const attr in data) {
-    if (data.hasOwnProperty(attr) && /^ix[A-Z]/.test(attr)) {
+    if (data.hasOwnProperty(attr) && imonomyData.indexOf(attr) >= 0) {
       delete data[attr];
     }
   }
   data.targeting = data.targeting || {};
-  data.targeting['IX_AMP'] = '1';
+  data.targeting['IMONOMY_AMP'] = '1';
 }
 
-function reportStats(siteID, slotID, dfpSlot, start, code) {
-  reportUrl();
+function reportStats(data, code) {
   try {
     if (code == EVENT_BADTAG) { return; }
     const xhttp = new XMLHttpRequest();
     xhttp.withCredentials = true;
-
-    // const deltat = Date.now() - start;
-    // const ts = start / 1000 >> 0;
-    // const ets = Date.now() / 1000 >> 0;
-    // let url = '//srv.imonomy.com/internal/reporter?s=' + siteID;
-    // if (typeof window.context.location.href !== 'undefined') {
-    //   url += '&u=' + encodeURIComponent(window.context.location.href);
-    // }
-    // let stats = '{"p":"display","d":"mobile","t":' + ts + ',';
-    // stats += '"sl":[{"s": "' + slotID + '",';
-    // stats += '"t":' + ets + ',';
-    // stats += '"e": [{';
-    // if (code == EVENT_SUCCESS) {
-    //   stats += '"n":"amp-s",';
-    // } else if (code == EVENT_TIMEOUT) {
-    //   stats += '"n":"amp-t",';
-    // } else {
-    //   stats += '"n":"amp-e",';
-    // }
-    // stats += '"v":"' + deltat + '",';
-    // stats += '"b": "INDX","x": "' + dfpSlot.substring(0,64) + '"}]}]}';
-
-    xhttp.open('GET', reportUrl(), true);
-    xhttp.setRequestHeader('Content-Type', 'application/json');
+    xhttp.open('GET', getTrackingUrl(data), true);
+    xhttp.setRequestHeader('Content-Type', 'text/plain');
     xhttp.send();
   } catch (e) {};
 }
 
-//publisher Id from data  (long int)
-// 9999
-function reportUrl() {
-  const subId = '',
-      unitFormat = '',
-      trackId = '1',
+function getTrackingUrl(data) {
+
+  let unitFormat = '';
+  const subId = data.subId,
+      pid = data.pid,
+      trackId = 'AMP',
       pageLocation = escape(document.location),
       notFirst = true,
-      cid = '1',
+      cid = '',
       abLabel = '',
       rand = Math.random();
+  if (!isNaN(data.width) && !isNaN(data.height)) {
+    unitFormat = `${data.width}x${data.height}`;
+  }
   const uid = '',
       isLocked = false,
       isTrackable = false,
       isClient = false,
-      tier = null;
+      tier = 0;
   const baseUrl = '//srv.imonomy.com/internal/reporter';
-  let unitCodeUrl = `${baseUrl}?v=2&subid=${subId}&format=${unitFormat}&ai=`;
+  let unitCodeUrl = `${baseUrl}?v=2&subid=${subId}&sid=${pid}&format=${unitFormat}&ai=`;
   unitCodeUrl = unitCodeUrl + `${trackId}&ctxu=${pageLocation}&fb=${notFirst}&`;
   unitCodeUrl = unitCodeUrl + `cid=${cid} &ab=${abLabel}&cbs=${rand}`;
   if (uid) {

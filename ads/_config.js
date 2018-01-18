@@ -418,7 +418,9 @@ export const adConfig = {
     preconnect: 'https://spad.i-mobile.co.jp',
   },
   imonomy: {
-    prefetch: 'http://srv.imonomy.com/amp/amp.js',
+    prefetch: 'https://srv.imonomy.com/amp/amp.js',
+    preconnect: 'https://srv.imonomy.com',
+    renderStartImplemented: true,
   },
   improvedigital: {},
 
